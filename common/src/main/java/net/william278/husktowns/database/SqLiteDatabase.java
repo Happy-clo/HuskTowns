@@ -114,14 +114,17 @@ public final class SqLiteDatabase extends Database {
 
         // Create tables
         if (!isCreated()) {
+            plugin.log(Level.INFO, "Creating SQLite database tables");
             try {
                 executeScript(getConnection(), "sqlite_schema.sql");
-                setLoaded(true);
             } catch (SQLException e) {
                 plugin.log(Level.SEVERE, "Failed to create SQLite database tables");
                 setLoaded(false);
                 return;
             }
+            setSchemaVersion(Migration.getLatestVersion());
+            plugin.log(Level.INFO, "SQLite database tables created!");
+            setLoaded(true);
             return;
         }
 
@@ -247,7 +250,7 @@ public final class SqLiteDatabase extends Database {
                 SELECT `uuid`, `username`, `last_login`, `preferences`
                 FROM `%user_data%`
                 WHERE datetime(`last_login` / 1000, 'unixepoch') < datetime('now', ?);"""))) {
-            statement.setString(1, String.format("-%s days", daysInactive));
+            statement.setString(1, String.format("-%d days", daysInactive));
             final ResultSet resultSet = statement.executeQuery();
             while (resultSet.next()) {
                 final UUID uuid = UUID.fromString(resultSet.getString("uuid"));

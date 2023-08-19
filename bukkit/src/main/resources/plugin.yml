@@ -15,16 +15,7 @@ softdepend:
   - 'PlaceholderAPI'
   - 'dynmap'
   - 'BlueMap'
+  - 'Pl3xMap'
   - 'LuckPerms'
   - 'HuskHomes'
   - 'Plan'
-
-commands:
-  husktowns:
-    usage: '/husktowns [<args>]'
-  town:
-    usage: '/town [<args>]'
-    aliases: [ 't' ]
-  admintown:
-    usage: '/admintown [<args>]'
-    aliases: [ 'at' ]
