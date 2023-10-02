@@ -25,7 +25,7 @@ dependencies {
     compileOnly 'com.github.BlueMap-Minecraft:BlueMapAPI:2.6.1'
     compileOnly 'us.dynmap:DynmapCoreAPI:3.4'
     compileOnly 'maven.modrinth:pl3xmap:1.20.1-469'
-    compileOnly 'com.github.plan-player-analytics:Plan:5.5.2461'
+    compileOnly 'com.github.plan-player-analytics:Plan:5.6.2556'
 
-    testImplementation 'com.github.plan-player-analytics:Plan:5.5.2461'
+    testImplementation 'com.github.plan-player-analytics:Plan:5.6.2556'
 }
