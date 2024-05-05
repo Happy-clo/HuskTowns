@@ -35,8 +35,8 @@ import java.util.Optional;
 
 public class MapSquare {
 
-    private static final char CLAIM_CHAR = '█';
-    private static final char WILDERNESS_CHAR = '▒';
+    private final char claimChar;
+    private final char wildernessChar;
 
     private final HuskTowns plugin;
     @Nullable
@@ -50,6 +50,8 @@ public class MapSquare {
         this.world = world;
         this.claim = claim;
         this.plugin = plugin;
+        this.claimChar = plugin.getSettings().getGeneral().getClaimMapClaimChar();
+        this.wildernessChar = plugin.getSettings().getGeneral().getClaimMapWildernessChar();
     }
 
     @NotNull
@@ -100,6 +102,9 @@ public class MapSquare {
     }
 
     private Optional<MineDown> getSquareHeaderLocale() {
+        if (isProtected()) {
+            return plugin.getLocales().getLocale("claim_map_square_unclaimable");
+        }
         if (isUnclaimable()) {
             return plugin.getLocales().getLocale("claim_map_square_unclaimable");
         }
@@ -112,7 +117,7 @@ public class MapSquare {
 
     @NotNull
     private String getSquareColor() {
-        if (isUnclaimable()) {
+        if (isProtected() || isUnclaimable()) {
             return "#780000";
         }
         if (isWilderness()) {
@@ -123,7 +128,7 @@ public class MapSquare {
 
     @NotNull
     public Component toComponent() {
-        Component component = Component.text(isWilderness() ? WILDERNESS_CHAR : CLAIM_CHAR)
+        Component component = Component.text(isWilderness() ? wildernessChar : claimChar)
                 .color(TextColor.fromHexString(getSquareColor()))
                 .hoverEvent(getSquareTooltip());
         if (!isUnclaimable()) {
@@ -145,6 +150,9 @@ public class MapSquare {
         return claim == null;
     }
 
+    private boolean isProtected() {
+        return plugin.getWorldGuardHook() != null && plugin.getWorldGuardHook().isChunkInRestrictedRegion(chunk, world.getName());
+    }
     public void markAsCurrentPosition(boolean isCurrentPosition) {
         this.isCurrentPosition = isCurrentPosition;
     }

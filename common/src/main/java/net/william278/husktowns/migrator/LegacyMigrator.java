@@ -34,7 +34,6 @@ import java.math.BigDecimal;
 import java.sql.*;
 import java.time.ZoneOffset;
 import java.util.*;
-import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.logging.Level;
 
 /**
@@ -101,7 +100,7 @@ public class LegacyMigrator extends Migrator {
                                         .build())
                                 .log(Log.migratedLog(founded.toLocalDateTime().atOffset(ZoneOffset.UTC)))
                                 .money(balance.subtract(plugin.getLevels().getTotalCostFor(level)))
-                                .rules(plugin.getRulePresets().getDefaultRules().getDefaults())
+                                .rules(plugin.getRulePresets().getDefaultRules().getDefaults(plugin.getFlags()))
                                 .level(level)
                                 .build());
                     }
@@ -196,7 +195,8 @@ public class LegacyMigrator extends Migrator {
                                 Flag.Defaults.PUBLIC_INTERACT_ACCESS.getName(), resultSet.getBoolean("public_interact_access"),
                                 Flag.Defaults.PUBLIC_CONTAINER_ACCESS.getName(), resultSet.getBoolean("public_container_access"),
                                 Flag.Defaults.PUBLIC_BUILD_ACCESS.getName(), resultSet.getBoolean("public_build_access"),
-                                Flag.Defaults.PUBLIC_FARM_ACCESS.getName(), resultSet.getBoolean("public_farm_access"))));
+                                Flag.Defaults.PUBLIC_FARM_ACCESS.getName(), resultSet.getBoolean("public_farm_access")
+                        )));
                     }
                 }
             }
@@ -249,12 +249,7 @@ public class LegacyMigrator extends Migrator {
                             continue;
                         }
 
-                        final int townId = town.get().getId();
-                        if (claimWorld.getClaims().containsKey(townId)) {
-                            claimWorld.getClaims().get(townId).add(claim);
-                        } else {
-                            claimWorld.getClaims().put(townId, new ConcurrentLinkedQueue<>(List.of(claim)));
-                        }
+                        claimWorld.addClaim(new TownClaim(town.get(), claim));
                         claimWorlds.replaceAll((k, v) -> k.equals(serverWorld) ? claimWorld : v);
                     }
                 }
