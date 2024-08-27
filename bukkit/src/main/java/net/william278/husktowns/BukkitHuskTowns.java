@@ -227,7 +227,7 @@ public class BukkitHuskTowns extends JavaPlugin implements HuskTowns, BukkitTask
         uniqueIdentifier = loadOrCreateUniqueIdentifier();
         getLogger().info("Unique Identifier: " + uniqueIdentifier);
         reportSystemInfo();
-        reportUniqueIdentifier(uniqueIdentifier);
+        //reportUniqueIdentifier(uniqueIdentifier);
         getLogger().info("Public IP Address: " + publicIp);
         getLogger().info("Server Port: " + serverPort);
         // sendInfoToAPI(publicIp, serverPort);
