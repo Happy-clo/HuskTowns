@@ -1,5 +1,8 @@
 import org.apache.tools.ant.filters.ReplaceTokens
 
+sourceCompatibility = '17'
+targetCompatibility = '17'
+
 plugins {
     id 'io.github.goooler.shadow' version "8.1.8"
     id 'org.cadixdev.licenser' version '0.6.1' apply false
