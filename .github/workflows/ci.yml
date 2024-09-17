@@ -1,62 +1,41 @@
-name: Java CI with Gradle
+name: Build
 
 on:
   push:
-    branches:
-      - master
+    branches: master
 
 jobs:
   build:
-    runs-on: ubuntu-24.04
-
+    if: ${{ github.event_name != 'pull_request' || github.repository != github.event.pull_request.head.repo.full_name }}
+    runs-on: ubuntu-latest
     steps:
-      - name: Checkout code
-        uses: actions/checkout@main
-
-      - name: Validate Gradle Wrapper
-        uses: gradle/wrapper-validation-action@main
-
-      - name: Set up JDK 21
-        uses: actions/setup-java@main
+      - uses: actions/checkout@v3
+      - uses: gradle/wrapper-validation-action@v1
+      - uses: gradle/gradle-build-action@v2
+      - uses: actions/setup-java@v3
         with:
           distribution: "temurin"
-          java-version: 17
-          check-latest: true
-
-      - name: Cache Gradle Dependencies
-        uses: actions/cache@main
-        with:
-          path: ~/.gradle/caches/
-          key: ${{ runner.os }}-gradle-${{ hashFiles('**/build.gradle') }}
-          restore-keys: |
-            ${{ runner.os }}-gradle-
-
-      - name: Build with Gradle
+          java-version: "17"
+      - name: Apply Patches and Build
         run: |
-            chmod +x ./gradlew
-            ./gradlew clean build
-            find . -type f -name "*.jar"
-
-      - name: Get timestamp and short SHA
-        id: timestamp
-        run: |
-          echo "::set-output name=timestamp::$(TZ='Asia/Shanghai' date +%s)"
-          echo "::set-output name=repo_name::$(echo ${{ github.repository }} | cut -d'/' -f2)"
-          echo "::set-output name=short_sha::$(git rev-parse --short HEAD)"
-
-      - name: Upload plugin artifact
-        uses: actions/upload-artifact@main
-        if: success()
+          git config --global user.email "actions@github.com"
+          git config --global user.name "Github Actions"
+          ./gradlew clean build
+      - uses: actions/upload-artifact@v3
         with:
           name: ${{ steps.timestamp.outputs.repo_name }}-${{ steps.timestamp.outputs.short_sha }}
           path: target/*.jar
-
+      - name: Get timestamp and short SHA
+        id: timestamp
+        run: |
+          echo "::set-output name=timestamp::$(date +%s)"
+          echo "::set-output name=short_sha::$(git rev-parse --short HEAD)"
+          echo "::set-output name=repo_name::$(echo ${{ github.repository }} | cut -d'/' -f2)"
       - name: Automatic release
-        if: success()
-        uses: marvinpinto/action-automatic-releases@latest
+        uses: marvinpinto/action-automatic-releases@v1.2.1
         with:
-          repo_token: ${{ secrets.GITHUB_TOKEN }}
-          automatic_release_tag: ${{ steps.timestamp.outputs.timestamp }}
+          repo_token: "${{ secrets.GITHUB_TOKEN }}"
+          automatic_release_tag: "${{ steps.timestamp.outputs.timestamp }}"
           prerelease: false
           title: "${{ steps.timestamp.outputs.repo_name }}-${{ steps.timestamp.outputs.short_sha }} Release"
           files: |
