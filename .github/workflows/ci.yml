@@ -1,61 +1,42 @@
-# Builds, tests the project with Gradle
-name: CI Tests
+name: Build
 
 on:
   push:
-    branches: [ 'master' ]
-    paths-ignore:
-      - 'docs/**'
-      - 'workflows/**'
-      - 'README.md'
-
-permissions:
-  contents: read
-  checks: write
+    branches: master
 
 jobs:
   build:
+    if: ${{ github.event_name != 'pull_request' || github.repository != github.event.pull_request.head.repo.full_name }}
     runs-on: ubuntu-latest
     steps:
-      - name: 'Checkout for CI 🛎️'
-        uses: actions/checkout@v4
-      - name: 'Set up JDK 17 📦'
-        uses: actions/setup-java@v4
+      - uses: actions/checkout@v3
+      - uses: gradle/wrapper-validation-action@v1
+      - uses: gradle/gradle-build-action@v2
+      - uses: actions/setup-java@v3
         with:
-          java-version: '17'
-          distribution: 'temurin'
-      - name: 'Build with Gradle 🏗️'
-        uses: gradle/gradle-build-action@v3
-        with:
-          arguments: build test publish
-        env:
-          SNAPSHOTS_MAVEN_USERNAME: ${{ secrets.MAVEN_USERNAME }}
-          SNAPSHOTS_MAVEN_PASSWORD: ${{ secrets.MAVEN_PASSWORD }}
-      - name: 'Publish Test Report 📊'
-        uses: mikepenz/action-junit-report@v4
-        if: success() || failure() # Continue on failure
-        with:
-          report_paths: '**/build/test-results/test/TEST-*.xml'
-      - name: 'Fetch Version Name 📝'
+          distribution: "temurin"
+          java-version: "17"
+      - name: Apply Patches and Build
         run: |
-          echo "::set-output name=VERSION_NAME::$(${{github.workspace}}/gradlew properties --no-daemon --console=plain -q | grep "^version:" | awk '{printf $2}')"
-        id: fetch-version
-      - name: Get Version
-        run: |
-          echo "version_name=${{steps.fetch-version.outputs.VERSION_NAME}}" >> $GITHUB_ENV
-      - name: 'Publish to William278.net 🚀'
-        uses: WiIIiam278/bones-publish-action@v1
+          git config --global user.email "actions@github.com"
+          git config --global user.name "Github Actions"
+          ./gradlew clean build
+      - uses: actions/upload-artifact@v3
         with:
-          api-key: ${{ secrets.BONES_API_KEY }}
-          project: 'husktowns'
-          channel: 'alpha'
-          version: ${{ env.version_name }}
-          changelog: ${{ github.event.head_commit.message }}
-          distro-names: |
-            paper
-          distro-groups: |
-            paper
-          distro-descriptions: |
-            Paper
+          name: ${{ steps.timestamp.outputs.repo_name }}-${{ steps.timestamp.outputs.short_sha }}
+          path: target/*.jar
+      - name: Get timestamp and short SHA
+        id: timestamp
+        run: |
+          echo "::set-output name=timestamp::$(date +%s)"
+          echo "::set-output name=short_sha::$(git rev-parse --short HEAD)"
+          echo "::set-output name=repo_name::$(echo ${{ github.repository }} | cut -d'/' -f2)"
+      - name: Automatic release
+        uses: marvinpinto/action-automatic-releases@v1.2.1
+        with:
+          repo_token: "${{ secrets.GITHUB_TOKEN }}"
+          automatic_release_tag: "${{ steps.timestamp.outputs.timestamp }}"
+          prerelease: false
+          title: "${{ steps.timestamp.outputs.repo_name }}-${{ steps.timestamp.outputs.short_sha }} Release"
           files: |
-            target/HuskTowns-Paper-${{ env.version_name }}.jar
+            target/*.jar
