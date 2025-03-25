@@ -31,6 +31,7 @@
 All of this is supported on both standalone setups and across a network of proxied servers&mdash;with support for a good range of add-ons to further enhance your experience.
 
 ## Features
+
 **⭐ Works cross-server** &mdash; Let players seamlessly manage their towns, claims and teleport to their town spawn across your proxy network!
 
 **⭐ Super intuitive** &mdash; Users will pick up how to use it right away! Make a town with /town create and claim a chunk with /town claim to get started.
@@ -46,16 +47,18 @@ All of this is supported on both standalone setups and across a network of proxi
 **Ready?** [Let's head down town!](https://william278.net/docs/husktowns/setup)
 
 ## Setup
+
 Requires Java 17+ and a Minecraft 1.17.1+ Spigot-based server. A MySQL database and (optionally) Redis are also needed if you wish to run the plugin across multiple servers on a proxy network.
 
 1. Place the plugin jar file in the `/plugins/` directory of each Spigot server you want to install it on.
 2. Start, then stop every server to let HuskTowns generate the config file.
-3. Navigate to the HuskTowns config file on each server (`~/plugins/HuskTowns/config.yml`) 
+3. Navigate to the HuskTowns config file on each server (`~/plugins/HuskTowns/config.yml`)
 4. Configure the plugin to your liking. If you are running HuskTowns across multiple servers, enable `cross_server` mode and fill in your MySQL credentials, remembering to change the database type to `MYSQL` as well.
 5. You can also modify the level requirements in `~/levels.yml`, the default town rule settings in `~/rules.yml` and the town roles in `~/roles.yml`
 6. Start every server again and HuskTowns should have completed installation!
 
 ## Development
+
 To build HuskTowns, simply run the following in the root of the repository:
 
 ```bash
@@ -63,6 +66,7 @@ To build HuskTowns, simply run the following in the root of the repository:
 ```
 
 ### License
+
 HuskTowns is licensed under the Apache 2.0 license.
 
 - [License](https://github.com/WiIIiam278/HuskTowns/blob/master/LICENSE)
@@ -70,15 +74,18 @@ HuskTowns is licensed under the Apache 2.0 license.
 Contributions to the project are welcome&mdash;feel free to open a pull request with new features, improvements and/or fixes!
 
 ### Support
+
 Due to its complexity, official binaries and customer support for HuskTowns is provided through a paid model. This means that support is only available to users who have purchased a license to the plugin from Spigot, Polymart, Craftaro, or BuiltByBit and have provided proof of purchase. Please join our Discord server if you have done so and need help!
 
 ## Translations
+
 Translations of the plugin locales are welcome to help make the plugin more accessible. Please submit a pull request with your translations as a `.yml` file. ([More info&hellip;](https://william278.net/docs/husktowns/translations))
 
 - [Locales Directory](https://github.com/WiIIiam278/HuskTowns/tree/master/common/src/main/resources/locales)
 - [English Locales](https://github.com/WiIIiam278/HuskTowns/tree/master/common/src/main/resources/locales/en-gb.yml)
 
 ## Links
+
 - [Docs](https://william278.net/docs/husktowns) &mdash; Read the plugin documentation!
 - [Spigot](https://www.spigotmc.org/resources/husktowns.92672/) &mdash; View the Spigot resource page (Also: [Polymart](https://polymart.org/resource/husktowns.1056), [Craftaro](https://craftaro.com/marketplace/product/husktowns.622), [BuiltByBit](https://builtbybit.com/resources/husktowns.34959/))
 - [Issues](https://github.com/WiIIiam278/HuskTowns/issues) &mdash; File a bug report or feature request
@@ -86,9 +93,9 @@ Translations of the plugin locales are welcome to help make the plugin more acce
 - [bStats](https://bstats.org/plugin/bukkit/HuskTowns/11265) &mdash; View plugin metrics
 
 ---
+
 &copy; [William278](https://william278.net/), 2023. Licensed under the Apache-2.0 License.
-> [!CAUTION]  
-> This branch is only for personal development, study and research. Please do not use any attachments directly. The author is not responsible for any problems with the source attachments.
+
 # 免责声明
 
 > [!CAUTION]  

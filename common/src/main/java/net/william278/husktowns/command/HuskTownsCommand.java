@@ -21,17 +21,23 @@ package net.william278.husktowns.command;
 
 import de.themoep.minedown.adventure.MineDown;
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.JoinConfiguration;
+import net.kyori.adventure.text.event.ClickEvent;
+import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextColor;
+import net.kyori.adventure.text.format.TextDecoration;
 import net.william278.desertwell.about.AboutMenu;
 import net.william278.desertwell.util.UpdateChecker;
 import net.william278.husktowns.HuskTowns;
 import net.william278.husktowns.migrator.LegacyMigrator;
 import net.william278.husktowns.migrator.Migrator;
 import net.william278.husktowns.user.CommandUser;
+import net.william278.husktowns.util.StatusLine;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
@@ -42,11 +48,13 @@ public final class HuskTownsCommand extends Command {
         this.setConsoleExecutable(true);
         this.setDefaultExecutor(new AboutCommand(this, plugin));
         this.setChildren(List.of(
-            new ReloadCommand(this, plugin),
-            new UpdateCommand(this, plugin),
-            new MigrateCommand(this, plugin),
-            getHelpCommand(),
-            (ChildCommand) getDefaultExecutor()
+                new ReloadCommand(this, plugin),
+                new UpdateCommand(this, plugin),
+                new StatusCommand(this, plugin),
+                new DumpCommand(this, plugin),
+                new MigrateCommand(this, plugin),
+                getHelpCommand(),
+                (ChildCommand) getDefaultExecutor()
         ));
     }
 
@@ -57,26 +65,26 @@ public final class HuskTownsCommand extends Command {
             super("about", List.of("info"), parent, "", plugin);
             this.setConsoleExecutable(true);
             this.aboutMenu = AboutMenu.builder()
-                .title(Component.text("HuskTowns"))
-                .description(Component.text("Simple and elegant proxy-compatible Towny-style protection"))
-                .version(plugin.getVersion())
-                .credits("Author",
-                    AboutMenu.Credit.of("William278").description("Click to visit website").url("https://william278.net"))
-                .credits("Contributors",
-                    AboutMenu.Credit.of("Pacific").description("Original design"),
-                    AboutMenu.Credit.of("CoolDCB").description("Code"))
-                .credits("Translators",
-                    AboutMenu.Credit.of("Revoolt").description("Spanish (es-es)"),
-                    AboutMenu.Credit.of("Wtq_").description("Simplified Chinese (zh-cn)"),
-                    AboutMenu.Credit.of("XeroYT").description("French (fr-fr)"),
-                    AboutMenu.Credit.of("Tyristana").description("Turkish (tr-tr)"),
-                    AboutMenu.Credit.of("ADAMADA8").description("Russian (ru-ru)"),
-                    AboutMenu.Credit.of("awrwag").description("Korean (ko-kr)"))
-                .buttons(
-                    AboutMenu.Link.of("https://william278.net/docs/husktowns").text("Documentation").icon("⛏"),
-                    AboutMenu.Link.of("https://github.com/WiIIiam278/HuskTowns/issues").text("Issues").icon("❌").color(TextColor.color(0xff9f0f)),
-                    AboutMenu.Link.of("https://discord.gg/tVYhJfyDWG").text("Discord").icon("⭐").color(TextColor.color(0x6773f5)))
-                .build();
+                    .title(Component.text("HuskTowns"))
+                    .description(Component.text("Simple and elegant proxy-compatible Towny-style protection"))
+                    .version(plugin.getPluginVersion())
+                    .credits("Author",
+                            AboutMenu.Credit.of("William278").description("Click to visit website").url("https://william278.net"))
+                    .credits("Contributors",
+                            AboutMenu.Credit.of("Pacific").description("Original design"),
+                            AboutMenu.Credit.of("CoolDCB").description("Code"))
+                    .credits("Translators",
+                            AboutMenu.Credit.of("Revoolt").description("Spanish (es-es)"),
+                            AboutMenu.Credit.of("Wtq_").description("Simplified Chinese (zh-cn)"),
+                            AboutMenu.Credit.of("XeroYT").description("French (fr-fr)"),
+                            AboutMenu.Credit.of("Tyristana").description("Turkish (tr-tr)"),
+                            AboutMenu.Credit.of("ADAMADA8").description("Russian (ru-ru)"),
+                            AboutMenu.Credit.of("awrwag").description("Korean (ko-kr)"))
+                    .buttons(
+                            AboutMenu.Link.of("https://william278.net/docs/husktowns").text("Documentation").icon("⛏"),
+                            AboutMenu.Link.of("https://github.com/WiIIiam278/HuskTowns/issues").text("Issues").icon("❌").color(TextColor.color(0xff9f0f)),
+                            AboutMenu.Link.of("https://discord.gg/tVYhJfyDWG").text("Discord").icon("⭐").color(TextColor.color(0x6773f5)))
+                    .build();
         }
 
         @Override
@@ -97,31 +105,73 @@ public final class HuskTownsCommand extends Command {
         public void execute(@NotNull CommandUser executor, @NotNull String[] args) {
             plugin.reload();
             plugin.getLocales().getLocale("reloading_system")
-                .ifPresent(executor::sendMessage);
+                    .ifPresent(executor::sendMessage);
         }
     }
 
     private static class UpdateCommand extends ChildCommand {
-        private final UpdateChecker checker;
+        private final UpdateChecker updateChecker;
 
         protected UpdateCommand(@NotNull Command parent, @NotNull HuskTowns plugin) {
             super("update", List.of("version"), parent, "", plugin);
             this.setConsoleExecutable(true);
             this.setOperatorCommand(true);
-            this.checker = plugin.getUpdateChecker();
+            this.updateChecker = plugin.getUpdateChecker();
         }
 
         @Override
         public void execute(@NotNull CommandUser executor, @NotNull String[] args) {
-            checker.check().thenAccept(checked -> {
+            updateChecker.check().thenAccept(checked -> {
                 if (checked.isUpToDate()) {
-                    plugin.getLocales().getLocale("up_to_date", plugin.getVersion().toString())
-                        .ifPresent(executor::sendMessage);
+                    plugin.getLocales().getLocale("up_to_date", plugin.getPluginVersion().toString())
+                            .ifPresent(executor::sendMessage);
                     return;
                 }
-                plugin.getLocales()
-                    .getLocale("update_available", checked.getLatestVersion().toString(), plugin.getVersion().toString())
-                    .ifPresent(executor::sendMessage);
+                plugin.getLocales().getLocale("update_available", checked.getLatestVersion().toString(),
+                        plugin.getPluginVersion().toString()).ifPresent(executor::sendMessage);
+            });
+        }
+    }
+
+    private static class StatusCommand extends ChildCommand {
+
+        protected StatusCommand(@NotNull Command parent, @NotNull HuskTowns plugin) {
+            super("status", List.of(), parent, "", plugin);
+            this.setConsoleExecutable(true);
+            this.setOperatorCommand(true);
+        }
+
+        @Override
+        public void execute(@NotNull CommandUser executor, @NotNull String[] args) {
+            plugin.getLocales().getLocale("system_status_header").ifPresent(executor::sendMessage);
+            executor.sendMessage(Component.join(
+                    JoinConfiguration.newlines(),
+                    Arrays.stream(StatusLine.values()).map(s -> s.get(plugin)).toList()
+            ));
+        }
+    }
+
+    private static class DumpCommand extends ChildCommand {
+
+        protected DumpCommand(@NotNull Command parent, @NotNull HuskTowns plugin) {
+            super("dump", List.of(), parent, "<confirm>", plugin);
+            this.setConsoleExecutable(true);
+            this.setOperatorCommand(true);
+        }
+
+        @Override
+        public void execute(@NotNull CommandUser executor, @NotNull String[] args) {
+            if (!parseStringArg(args, 0).map(s -> s.equals("confirm")).orElse(false)) {
+                plugin.getLocales().getLocale("system_dump_confirm").ifPresent(executor::sendMessage);
+                return;
+            }
+
+            plugin.getLocales().getLocale("system_dump_started").ifPresent(executor::sendMessage);
+            plugin.runAsync(() -> {
+                final String url = plugin.createDump(executor);
+                plugin.getLocales().getLocale("system_dump_ready").ifPresent(executor::sendMessage);
+                executor.sendMessage(Component.text(url).clickEvent(ClickEvent.openUrl(url))
+                        .decorate(TextDecoration.UNDERLINED).color(NamedTextColor.GRAY));
             });
         }
     }
@@ -141,35 +191,35 @@ public final class HuskTownsCommand extends Command {
             final Optional<Migrator> migrator = parseStringArg(args, 0).flatMap(this::getMigrator);
             if (migrator.isEmpty()) {
                 plugin.getLocales().getLocale("error_invalid_syntax", getUsage())
-                    .ifPresent(executor::sendMessage);
+                        .ifPresent(executor::sendMessage);
                 return;
             }
 
             final Optional<String> subCommand = parseStringArg(args, 1);
             if (subCommand.isEmpty()) {
                 executor.sendMessage(new MineDown("""
-                    [[%1% Migrator] To start data migration, ensure your source database is online or the existing\s
-                    SQLite database file is present in /plugins/HuskTowns/ and that the below parameters are correct.\s
-                    Then, run](#00fb9a) [/husktowns migrate %2% start](#00fb9a italic run_command=/husktowns:husktowns migrate %2% start) [to start.](#00fb9a)"""
-                    .replaceAll("%1%", migrator.get().getName())
-                    .replaceAll("%2%", migrator.get().getName().toLowerCase())));
+                        [[%1% Migrator] To start data migration, ensure your source database is online or the existing\s
+                        SQLite database file is present in /plugins/HuskTowns/ and that the below parameters are correct.\s
+                        Then, run](#00fb9a) [/husktowns migrate %2% start](#00fb9a italic run_command=/husktowns:husktowns migrate %2% start) [to start.](#00fb9a)"""
+                        .replaceAll("%1%", migrator.get().getName())
+                        .replaceAll("%2%", migrator.get().getName().toLowerCase())));
 
                 migrator.get().getParameters().forEach((key, value) -> executor.sendMessage(new MineDown("""
-                    [- %1%: %2%](#00fb9a run_command=/husktowns:husktowns migrate %3% set %1% )"""
-                    .replaceAll("%1%", key.toLowerCase())
-                    .replaceAll("%2%", value)
-                    .replaceAll("%3%", migrator.get().getName().toLowerCase()))));
+                        [- %1%: %2%](#00fb9a run_command=/husktowns:husktowns migrate %3% set %1% )"""
+                        .replaceAll("%1%", key.toLowerCase())
+                        .replaceAll("%2%", value)
+                        .replaceAll("%3%", migrator.get().getName().toLowerCase()))));
 
                 executor.sendMessage(new MineDown("[[Caution]](#ffff00) [Before migration, please make sure you have " +
-                    "configured your town Roles and Level rules to match your existing " +
-                    migrator.get().getName().toLowerCase() + " setup!](#ffff00)"));
+                        "configured your town Roles and Level rules to match your existing " +
+                        migrator.get().getName().toLowerCase() + " setup!](#ffff00)"));
                 if (plugin.getSettings().getCrossServer().isEnabled()) {
                     executor.sendMessage(new MineDown("[[Caution]](#ffff00) [Make sure all your servers are online and running " +
-                        "HuskTowns v" + plugin.getVersion() + " to make sure that claim world data " +
-                        "has been pre-prepared on your database for each world/server.](#ffff00)"));
+                            "HuskTowns v" + plugin.getPluginVersion() + " to make sure that claim world data " +
+                            "has been pre-prepared on your database for each world/server.](#ffff00)"));
                 }
                 executor.sendMessage(new MineDown("[[Warning]](#ff0000) [If you proceed with migration, any existing town data " +
-                    "will be deleted](#ff0000)"));
+                        "will be deleted](#ff0000)"));
                 return;
             }
 
@@ -180,17 +230,17 @@ public final class HuskTownsCommand extends Command {
                     final Optional<String> value = parseStringArg(args, 3);
                     if (parameter.isEmpty() || value.isEmpty() || migrator.get().getParameter(parameter.get()).isEmpty()) {
                         plugin.getLocales().getLocale("error_invalid_syntax", getUsage())
-                            .ifPresent(executor::sendMessage);
+                                .ifPresent(executor::sendMessage);
                         return;
                     }
                     migrator.get().setParameter(parameter.get(), value.get());
                     executor.sendMessage(new MineDown("[[%1% Migrator] Set parameter %2% to %3%.](#00fb9a)"
-                        .replaceAll("%1%", migrator.get().getName())
-                        .replaceAll("%2%", parameter.get().toLowerCase())
-                        .replaceAll("%3%", value.get())));
+                            .replaceAll("%1%", migrator.get().getName())
+                            .replaceAll("%2%", parameter.get().toLowerCase())
+                            .replaceAll("%3%", value.get())));
                 }
                 default -> plugin.getLocales().getLocale("error_invalid_syntax", getUsage())
-                    .ifPresent(executor::sendMessage);
+                        .ifPresent(executor::sendMessage);
             }
         }
 
@@ -205,9 +255,9 @@ public final class HuskTownsCommand extends Command {
                 case 0, 1 -> filter(migrators.stream().map(Migrator::getName).map(String::toLowerCase).toList(), args);
                 case 2 -> filter(List.of("start", "set"), args);
                 case 3 -> filter(migrators.stream()
-                    .filter(migrator -> migrator.getName().equalsIgnoreCase(args[0]))
-                    .flatMap(migrator -> migrator.getParameters().keySet()
-                        .stream().map(String::toLowerCase)).toList(), args);
+                        .filter(migrator -> migrator.getName().equalsIgnoreCase(args[0]))
+                        .flatMap(migrator -> migrator.getParameters().keySet()
+                                .stream().map(String::toLowerCase)).toList(), args);
                 default -> List.of();
             };
         }
